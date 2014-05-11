@@ -57,3 +57,13 @@ class GetLastActivity(ActionView):
     def __init__(self, *args, **kwargs):
         self.action = buildslave_last_activity
         ActionView.__init__(self, *args, **kwargs)
+
+
+class Update(ActionView):
+    """Updates various pieces of the buildslave status. See
+    :py:class:`slaveapi.web.action_base.ActionView` for details on GET and POST
+    methods. See :py:func:`slaveapi.actions.update.update`
+    for details on what updates are supported"""
+    def __init__(self, *args, **kwargs):
+        self.action = update
+        ActionView.__init__(self, *args, **kwargs)
