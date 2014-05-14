@@ -1,6 +1,6 @@
 import logging
 
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from flask.views import MethodView
 
 from .action_base import ActionView
@@ -69,8 +69,30 @@ class Disable(ActionView):
         self.action = disable
         ActionView.__init__(self, *args, **kwargs)
 
+    def normalize_truthiness(self, value):
+        true_values = ['y', 'yes', '1', 'true']
+        false_values = ['n', 'no', '0', 'false']
+
+        if str(value).lower() in true_values:
+            return True
+        elif str(value).lower() in false_values:
+            return False
+        else:
+            raise ValueError(
+                "Unsupported value (%s) for truthiness. Accepted values: "
+                "truthy - %s, falsy - %s" % (value, true_values, false_values)
+            )
+
     def post(self, slave, *action_args, **action_kwargs):
         action_kwargs['reason_comment'] = request.form.get('reason_comment')
-        action_kwargs['use_force'] = request.form.get('use_force', False)
-        super(Disable, self).post(slave, *action_args, **action_kwargs)
-
+        try:
+            action_kwargs['use_force'] = self.normalize_truthiness(
+                request.form.get('use_force', False)
+            )
+        except ValueError as e:
+            return make_response(
+                jsonify({'error': 'incorrect args for use_force in post',
+                         'msg': str(e)}),
+                400
+            )
+        return super(Disable, self).post(slave, *action_args, **action_kwargs)

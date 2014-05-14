@@ -25,6 +25,9 @@ def get_slave(api, id_=None, name=None):
     log.info("Making request to: %s", url)
     return requests.get(str(url)).json()
 
+def get_slave_id(api, name):
+    return get_slave(api, name=name)['slaveid']
+
 def update_slave(api, name, values_to_update):
     """
     updates a slave's values in slavealloc.
@@ -43,27 +46,27 @@ def update_slave(api, name, values_to_update):
     # http://slavealloc.build.mozilla.org/api/slaves/dev-linux64-ec2-jlund2?byname=1
 
     return_msg = "Updating slave %s in slavealloc..." % name
+    id_ = get_slave_id(api, name=name)
 
     url = furl(api)
-    url.path.add("slaves")
-    url.path.add("%s" % name)
-    url.args['byname'] = 1
-    values_jsonfied = json.dumps(values_to_update)
+    url.path.add("slaves/%s" % id_)
+    payload = json.dumps(values_to_update)
 
     try:
-        response = requests.put(str(url), data=values_jsonfied)
+        response = requests.put(str(url), data=payload)
     except RequestException as e:
         log.exception("%s - Caught exception while updating slavealloc.", name)
         log.exception("Exception message: %s" % e)
         return_msg += "Failed\nCaught exception while updating: %s" % (e,)
         return FAILURE, return_msg
 
-    if response.status_code == response.codes.ok:
+    if response.status_code == 200:
         return_msg += "Success"
         return_code = SUCCESS
     else:
         return_msg += "Failed\n"
-        return_msg += 'response code while updating: %s' % response.status_code
+        return_msg += 'error response code: %s\n' % response.status_code
+        return_msg += 'error response msg: %s' % response.reason
         return_code = FAILURE
 
     return return_code, return_msg

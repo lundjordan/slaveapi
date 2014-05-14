@@ -1,14 +1,14 @@
+from slaveapi.clients import slavealloc
 from slaveapi.slave import Slave
 from slaveapi.actions.reboot import reboot
 from slaveapi.actions.shutdown_buildslave import shutdown_buildslave
 from .results import SUCCESS, FAILURE
 from ..global_state import config
-from ..clients.slavealloc import update_slave as update_slave_in_slavealloc
 
 import logging
 log = logging.getLogger(__name__)
 
-def disable(name, reason_comment=None, use_force=None):
+def disable(name, reason_comment=None, use_force=False):
     """Attempts to disable the named slave from buildbot.
 
     Details of what was attempted and the result are reported into the
@@ -40,7 +40,7 @@ def disable(name, reason_comment=None, use_force=None):
 
     slave = Slave(name)
     slave.load_slavealloc_info()
-    slave.load_bug_info(createIfMissing=False)
+    slave.load_bug_info(createIfMissing=True)
 
     if not slave.enabled:  # slave disabled in slavealloc, nothing to do!
         status_msgs.append("Slave is already disabled. Nothing to do.")
@@ -49,26 +49,24 @@ def disable(name, reason_comment=None, use_force=None):
     #### 1. Disable Slave in Slavealloc
     status_msgs.append("disabling in slavealloc")
     slavealloc_values = {
-        'enabled': 0,
+        'enabled': False,
     }
-    update_alloc_result, update_alloc_msg = update_slave_in_slavealloc(
+    update_alloc_result, update_alloc_msg = slavealloc.update_slave(
         api=config["slavealloc_api_url"], name=name,
         values_to_update=slavealloc_values,
     )
     if update_alloc_result is FAILURE:
         action_succeeded_so_far = False
+    status_msgs.append(str(update_alloc_msg))
     ####
 
-    status_msgs.append(str(update_alloc_msg))
-
+    #### 2. Stop Buildbot Process
     if action_succeeded_so_far:
-        #### 2. Stop Buildbot Process
         stop_buildslave_result, stop_buildslave_msg = shutdown_buildslave(name)
-        ####
+        status_msgs.append(str(stop_buildslave_msg))
 
         #### 3. Verify Buildbot Process is Not Running
         if stop_buildslave_result is FAILURE:
-            status_msgs.append(str(stop_buildslave_msg))
             if use_force:
                 # off with his head!
                 status_msgs.append("Forcing a reboot.")
@@ -80,6 +78,7 @@ def disable(name, reason_comment=None, use_force=None):
             else:
                 action_succeeded_so_far = False
         ####
+    ####
 
     #### 4. Update Problem Tracking Bug
     if action_succeeded_so_far:
@@ -95,6 +94,6 @@ def disable(name, reason_comment=None, use_force=None):
     if not slave.bug.data["is_open"]:
         bug_data["status"] = "REOPENED"
     slave.bug.add_comment(result_msg, data=bug_data)
-    ####
+    ###
 
     return result_status, result_msg
