@@ -45,7 +45,7 @@ def shutdown_buildslave(name):
         requests.post(str(shutdown_url), allow_redirects=False)
     except requests.RequestException:
         log.exception("%s - Failed to initiate graceful shutdown.", slave.name)
-        status_text = "Failure\nFailed to initiate graceful shutdown through %s" % (shutdown_url,)
+        status_text += "Failure\nFailed to initiate graceful shutdown through %s" % (shutdown_url,)
         return FAILURE,  status_text
 
     twistd_log = "%s/%s" % (slave.basedir, "twistd.log")
@@ -55,7 +55,7 @@ def shutdown_buildslave(name):
         try:
             rc, output = console.run_cmd("tail -n1 %s" % twistd_log)
             if "Server Shut Down" in output:
-                status_text = "Success\nShutdown succeeded."
+                status_text += "Success"
                 log.debug("%s - Shutdown succeeded." % slave.name)
                 return SUCCESS, status_text
             else:
@@ -64,5 +64,5 @@ def shutdown_buildslave(name):
             log.debug("Caught error when waiting for shutdown, trying again...", exc_info=True)
             time.sleep(30)
     else:
-        status_text = "Failure\nShutdown succeeded."
+        status_text += "Failure\nCouldn't confirm shutdown"
         return FAILURE, status_text

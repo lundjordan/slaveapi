@@ -111,8 +111,8 @@ def reboot(name, update_bug=True):
         else:
             if not slave.bug:
                 slave.load_bug_info(createIfMissing=True)
-            status_text += "Filed IT bug for reboot (bug %s)" % slave.reboot_bug.id_
             if update_bug:
+                status_text += "Filed IT bug for reboot (bug %s)" % slave.reboot_bug.id_
                 slave.reboot_bug = file_reboot_bug(slave)
                 data = {}
                 if not slave.bug.data["is_open"]:

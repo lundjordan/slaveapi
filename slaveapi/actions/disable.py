@@ -35,7 +35,7 @@ def disable(name, reason_comment=None, use_force=False):
             gracefully, reboot the slave
     """
     action_succeeded_so_far = True
-    status_msgs = ["Disabling Slave: %s" % name]
+    status_msgs = ["Disabling Slave: %s by..." % name]
     result_status = SUCCESS  # innocent until proven guilty!
 
     slave = Slave(name)
@@ -47,7 +47,6 @@ def disable(name, reason_comment=None, use_force=False):
         return result_status, "\n".join(status_msgs)
 
     #### 1. Disable Slave in Slavealloc
-    status_msgs.append("disabling in slavealloc")
     slavealloc_values = {
         'enabled': False,
     }
@@ -86,7 +85,7 @@ def disable(name, reason_comment=None, use_force=False):
         if reason_comment:
             status_msgs.append("Reason for disabling: %s" % reason_comment)
     else:
-        status_msgs.append("%s - was not disabled via Slaveapi" % name)
+        status_msgs.append("%s - Couldn't be confirmed disabled via slaveapi" % name)
         result_status = FAILURE
 
     result_msg = "\n".join(status_msgs)
