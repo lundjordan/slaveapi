@@ -28,29 +28,26 @@ def get_slave(api, id_=None, name=None):
 def get_slave_id(api, name):
     return get_slave(api, name=name)['slaveid']
 
-def update_slave(api, name, values_to_update):
+def update_slave(api, name, data):
     """
     updates a slave's values in slavealloc.
 
-    args:
-        api (string) -- the root url for slaveallocs api
-        name (string) -- the hostname of the slave being updated
-        values_to_update (dict) -- the slave's values we wish to change
+    :param api: the api url for slavealloc
+    :type api: str
+    :param name: hostname of slave
+    :type name: str
+    :param data: values to be updated
+    :type data: dict
 
-    returns:
-        a tuple that consists of the return_code and return_msg
+    :rtype: tuple
     """
-
-    # http://slavealloc.build.mozilla.org/api/
-    # dev-linux64-ec2-jlund2
-    # http://slavealloc.build.mozilla.org/api/slaves/dev-linux64-ec2-jlund2?byname=1
 
     return_msg = "Updating slave %s in slavealloc..." % name
     id_ = get_slave_id(api, name=name)
 
     url = furl(api)
     url.path.add("slaves/%s" % id_)
-    payload = json.dumps(values_to_update)
+    payload = json.dumps(data)
 
     try:
         response = requests.put(str(url), data=payload)
