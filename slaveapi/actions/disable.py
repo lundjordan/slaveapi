@@ -1,11 +1,12 @@
-from slaveapi.clients import slavealloc
-from slaveapi.slave import Slave
-from slaveapi.actions.reboot import reboot
-from slaveapi.actions.shutdown_buildslave import shutdown_buildslave
-from .results import SUCCESS, FAILURE
+import logging
+
+from ..clients import slavealloc
+from ..slave import Slave
+from .reboot import reboot
+from .shutdown_buildslave import shutdown_buildslave
+from .results import SUCCESS
 from ..global_state import config
 
-import logging
 log = logging.getLogger(__name__)
 
 def disable(name, reason=None, force=False):

@@ -5,7 +5,7 @@ from requests import RequestException
 import json
 
 import logging
-from slaveapi.actions.results import FAILURE, SUCCESS
+from ..actions.results import FAILURE, SUCCESS
 
 log = logging.getLogger(__name__)
 

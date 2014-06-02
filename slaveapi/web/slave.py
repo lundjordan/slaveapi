@@ -10,7 +10,7 @@ from ..actions.buildslave_uptime import buildslave_uptime
 from ..actions.buildslave_last_activity import buildslave_last_activity
 from ..actions.disable import disable
 from ..slave import Slave as SlaveClass
-from slaveapi.util import normalize_truthiness
+from ..util import normalize_truthiness
 
 log = logging.getLogger(__name__)
 
