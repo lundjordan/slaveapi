@@ -16,8 +16,52 @@ def find_key_value(info, wanted_key):
     else:
         return None
 
+
+def _create_record(ip, api, fqdn, desc, username, password, _type):
+    url = furl(api)
+
+    # remove un-needed removal once bug 1030332 is resolved
+    url.path.remove(str(url.path))  # trims path if present
+
+    # now add the path that we can update from
+    url.path.add('en-US/mozdns/api/v1_dns/')
+    if _type == 'a':
+        url.path.add('addressrecord')
+        fqdn_title = 'fqdn'
+    elif _type == 'ptr':
+        url.path.add('ptr')
+        fqdn_title = 'name'
+    else:
+        raise ValueError("only 'a' and 'ptr' are valid for _type. Got %s" % _type)
+    payload = {
+        "ip_str": ip,
+        "description": desc,
+        fqdn_title: fqdn,
+        "ip_type": "4",
+        "views": ["private"],
+    }
+    auth = (username, password)
+    log.debug("%s - Post request to %s with payload %s", fqdn, url, payload)
+
+    return requests.post(str(url), data=payload, auth=auth)
+
+
+def create_address_record(ip, api, fqdn, desc, username, password):
+    result = _create_record(ip, api, fqdn, desc, username, password, _type='a')
+
+
+def create_ptr_record(ip, api, fqdn, desc, username, password):
+    result = _create_record(ip, api, fqdn, desc, username, password, _type='ptr')
+
+
 def get_system(fqdn, api, username, password):
     url = furl(api)
+
+    # remove condition when bug 1030332 is resolved. below supports api
+    # without any path set
+    if not str(url.path):
+        url.path.add('/en-US/tasty/v3/')
+
     url.path.add("system")
     url.args["format"] = "json"
     url.args["hostname"] = fqdn

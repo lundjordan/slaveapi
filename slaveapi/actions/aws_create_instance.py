@@ -84,11 +84,6 @@ def aws_create_instance(email, bug, instance_type, arch=64):
                   'and host: %s' % (email, bug, free_ip, host))
 
         # TODO START HERE TOMORROW
-invtool A create --ip $ip --fqdn $host.dev.releng.use1.mozilla.com --private  --description "bug $bug: loaner for $user"
-invtool A create --ip $ip --fqdn $host.test.releng.use1.mozilla.com --private  --description "bug $bug: loaner for $user"
-
-invtool PTR create --ip $ip --target $host.dev.releng.use1.mozilla.com --private --description "bug $bug: loaner for $user"
-invtool PTR create --ip $ip --target $host.test.releng.use1.mozilla.com --private --description "bug $bug: loaner for $user"
 
     except RemoteCommandError:
         return_code = FAILURE
