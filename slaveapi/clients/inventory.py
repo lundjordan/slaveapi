@@ -2,9 +2,18 @@ from collections import defaultdict
 from furl import furl
 
 import requests
+from requests import RequestException
 
 import logging
+from ..global_state import config
+from slaveapi.actions.results import SUCCESS, FAILURE
+
 log = logging.getLogger(__name__)
+
+USERNAME = config["inventory_username"]
+PASSWORD = config["inventory_password"]
+API = config["inventory_api_url"]
+
 
 def find_key_value(info, wanted_key):
     if not info["key_value"]:
@@ -17,45 +26,62 @@ def find_key_value(info, wanted_key):
         return None
 
 
-def _create_record(ip, api, fqdn, desc, username, password, _type):
-    url = furl(api)
+def _create_record(ip, payload, desc, _type):
+    url = furl(API)
 
     # remove un-needed removal once bug 1030332 is resolved
     url.path.remove(str(url.path))  # trims path if present
 
     # now add the path that we can update from
-    url.path.add('en-US/mozdns/api/v1_dns/')
-    if _type == 'a':
-        url.path.add('addressrecord')
-        fqdn_title = 'fqdn'
-    elif _type == 'ptr':
-        url.path.add('ptr')
-        fqdn_title = 'name'
-    else:
-        raise ValueError("only 'a' and 'ptr' are valid for _type. Got %s" % _type)
-    payload = {
+    url.path.add('en-US/mozdns/api/v1_dns/{0}'.format(_type))
+
+    payload.update({
         "ip_str": ip,
         "description": desc,
-        fqdn_title: fqdn,
         "ip_type": "4",
         "views": ["private"],
-    }
-    auth = (username, password)
-    log.debug("%s - Post request to %s with payload %s", fqdn, url, payload)
+    })
+    auth = (USERNAME, PASSWORD)
+    return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
-    return requests.post(str(url), data=payload, auth=auth)
+    try:
+        response = requests.post(str(url), data=payload, auth=auth)
+    except RequestException as e:
+        return_msg += ("{0} - exception while creating {1} in "
+                       "inventory: {2}".format(ip, _type, e))
+        log.exception(return_msg)
+        return FAILURE, return_msg
+
+    if response.status_code == 200:
+        # XXX
+        print str(response)
+        return SUCCESS, "Success"
+    else:
+        return_msg = "Failed\n{0} - error response msg: {1}".format(
+            response.status_code, response.reason
+        )
+        return FAILURE, return_msg
 
 
-def create_address_record(ip, api, fqdn, desc, username, password):
-    result = _create_record(ip, api, fqdn, desc, username, password, _type='a')
+def create_address_record(ip, fqdn, desc):
+    payload = {'fqdn': fqdn}
+    return _create_record(ip, payload, desc, _type='addressrecord')
 
 
-def create_ptr_record(ip, api, fqdn, desc, username, password):
-    result = _create_record(ip, api, fqdn, desc, username, password, _type='ptr')
+def create_ptr_record(ip, fqdn, desc):
+    payload = {'name': fqdn}
+    return _create_record(ip, payload, desc, _type='ptr')
 
 
-def get_system(fqdn, api, username, password):
-    url = furl(api)
+def create_dns(ip, fqdn, desc):
+    return_code, msg = create_address_record(ip, fqdn, desc)
+    if return_code == SUCCESS:
+        return_code, msg = create_ptr_record(ip, fqdn, desc)
+    return return_code, msg
+
+
+def get_system(fqdn):
+    url = furl(API)
 
     # remove condition when bug 1030332 is resolved. below supports api
     # without any path set
@@ -65,7 +91,7 @@ def get_system(fqdn, api, username, password):
     url.path.add("system")
     url.args["format"] = "json"
     url.args["hostname"] = fqdn
-    auth = (username, password)
+    auth = (USERNAME, PASSWORD)
     log.debug("%s - Making request to %s", fqdn, url)
     info = defaultdict(lambda: None)
     try:

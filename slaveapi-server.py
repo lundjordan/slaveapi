@@ -66,6 +66,10 @@ def load_config(ini):
     config["default_domain"] = ini.get("slaves", "default_domain")
     config["ipmi_username"] = ini.get("slaves", "ipmi_username")
     config["devices_json_url"] = ini.get("devices", "devices_json_url")
+    config['cloud_tools_path'] = ini.get("aws", "cloud_tools_path")
+    config['aws_secrets'] = ini.get("aws", "aws_secrets")
+    config['cloud_tools_path'] = ini.get("aws", "cloud_tools_path")
+    config['aws_ssh_key'] = ini.get("aws", "aws_ssh_key")
 
 def load_credentials(credentials):
     config["ssh_credentials"] = credentials["ssh"]
