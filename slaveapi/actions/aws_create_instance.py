@@ -68,8 +68,8 @@ def aws_create_instance(email, bug, instance_type, arch=64):
         # it's propagated?
         time.sleep(20 * 60)
         status_msgs.append("Success\ncreating and assimilating aws instance...")
-        return_code, return_msg = aws.create_aws_instance(host, email, bug,
-                                                          aws_config, data)
+        return_code, return_msg = aws.create_aws_instance(fqdn, host, email,
+                                                          bug, aws_config, data)
         status_msgs.append(return_msg)
 
     return return_code, "\n".join(status_msgs)
