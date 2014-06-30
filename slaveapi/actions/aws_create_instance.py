@@ -57,19 +57,24 @@ def aws_create_instance(email, bug, instance_type, arch=64):
         record_desc = "bug {num}: loaner for {nick}".format(num=bug, nick=nick)
         return_code, return_msg = inventory.create_dns(ip, fqdn, record_desc)
     else:
-        log.debug("host: {0} - failed to generate a free ip".format(host))
+        log.warning("host: {0} - failed to generate a free ip".format(host))
         status_msgs.append("failed to generate a free ip")
 
     if return_code == SUCCESS:
         status_msgs.append("Success\nwaiting for DNS to propagate...")
         log.debug("host: {0} - waiting for DNS to propagate".format(host))
         # TODO - rather than waiting 20 min, maybe we can poll
-        # inventory.get_system(fqdn) and if that yields a result, we can say
+        # inventory.get_system(host) and if that yields a result, we can say
         # it's propagated?
         time.sleep(20 * 60)
         status_msgs.append("Success\ncreating and assimilating aws instance...")
-        return_code, return_msg = aws.create_aws_instance(fqdn, host, email,
+        return_code, result = aws.create_aws_instance(fqdn, host, email,
                                                           bug, aws_config, data)
-        status_msgs.append(return_msg)
+        if return_code == SUCCESS:
+            instance = dict(result)
+            instance['ip'] = ip  # add ip to downstream parsers like loantool
+            return SUCCESS, str(instance)  # just return instance info
+
+        status_msgs.append(result)
 
     return return_code, "\n".join(status_msgs)

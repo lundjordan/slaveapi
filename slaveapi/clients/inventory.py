@@ -10,10 +10,9 @@ from slaveapi.actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 
+API = config["inventory_api_url"]
 USERNAME = config["inventory_username"]
 PASSWORD = config["inventory_password"]
-API = config["inventory_api_url"]
-
 
 def find_key_value(info, wanted_key):
     if not info["key_value"]:
@@ -53,8 +52,6 @@ def _create_record(ip, payload, desc, _type):
         return FAILURE, return_msg
 
     if response.status_code == 200:
-        # XXX
-        print str(response)
         return SUCCESS, "Success"
     else:
         return_msg = "Failed\n{0} - error response msg: {1}".format(

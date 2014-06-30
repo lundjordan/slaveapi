@@ -1,8 +1,8 @@
 import logging
 import os
 import socket
-from subprocess import check_output, check_call, CalledProcessError
-from slaveapi.actions.results import FAILURE
+from subprocess import check_output, check_call, CalledProcessError, Popen
+from slaveapi.actions.results import FAILURE, SUCCESS
 
 log = logging.getLogger(__name__)
 from ..global_state import config
@@ -38,7 +38,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
                                'configs', aws_config)
     attempt = 1
     while attempt < max_attempts:
-        ip = subprocess.check_output(
+        ip = check_output(
             'python {free_ip} -c {config} -r {region} -n1'.format(
                 free_ip=free_ip_script, config=config_path, region=region
             )
@@ -50,7 +50,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
     return None
 
 
-def create_aws_instance(fqdn, email, bug, aws_config, data,
+def create_aws_instance(fqdn, host, email, bug, aws_config, data,
                         region='use-east-1'):
     create_script = os.path.join(config['cloud_tools_path'],
                                  'scripts/aws_create_instance.py')
@@ -60,46 +60,44 @@ def create_aws_instance(fqdn, email, bug, aws_config, data,
                              data)
     try:
         check_call(
-            'python {create_script} -c {config} -r {region} -s aws-releng'
-            '--ssh-key {ssh_key} -k {aws_secrets} --loaned-to {email} --bug {bug}'
-            '-i {instance_data} {fqdn}'.format(
-                create_script=create_script, config=config_path, region=region,
-                ssh_key=config['aws_ssh_key'], aws_secrets=config['aws_secrets'],
-                email=email, bug=bug, instance_data=data_path, fqdn=fqdn
-            ), cwd=config['aws_base_path'], timeout=35*60
+            ['python', create_script, '-c', config_path, '-r', region, '-s',
+             'aws-releng', '--ssh-key', config['aws_ssh_key'], '-k',
+             config['aws_secrets'], '--loaned-to', email, '--bug', bug,
+             '-i', data_path, fqdn], cwd=config['aws_base_path'],
         )
     except CalledProcessError as e:
-        log.warning('{fqdn} - failed to create instance. '
-                    'error: {err}'.format(fqdn=fqdn, err=e))
-        return FAILURE, e
+        fail_msg = "{0} - failed to create instance. error: {1}".format(host, e)
+        log.warning(fail_msg)
+        return FAILURE, fail_msg
 
-    # no immediate errors found, but let's poke the status of this instance
-    query_aws_instance(fqdn.split('.')[0])  # just pass the name not full fqdn
+    # return code of check_call was good, let's poke the status of this instance
+    tags = query_aws_instance(host)
+
+    # aws_create_instance.py adds certain tags for validation.
+    # e.g. if 'moz-state' == 'ready' we puppetized properly
+    validated = all([
+        tags.get('FQDN') == fqdn,
+        tags.get('moz-loaned-to') == email,
+        tags.get('moz-state') == 'ready',
+        tags.get('created')
+    ])
+    if validated:
+        return SUCCESS, tags  # return instance information
+
+    fail_msg = ("{0} - Instance could not be confirmed created or puppetized. "
+                "Tags known: {1}".format(host, tags or "None"))
+    log.warning(fail_msg)
+    return FAILURE, fail_msg
 
 
 def query_aws_instance(name):
     query_script = os.path.join(config['cloud_tools_path'],
-                                'scripts/aws_manage_instance.py')
-    output = check_output(
-        'python {0} status {1}'.format(query_script, name)
-    )
+                                'scripts/aws_manage_instances.py')
+    output = check_output(['python', query_script, 'status', name])
 
-    return output
-
-# TODO add the following functions
-# def terminate_aws_instance(name):
-#     if is_ec2_instance(name):
-#         result_code, result_msg = do_action(name)
-#         return result_code, result_msg
-#     else:
-#         return FAILURE, "%s - slave not found in aws".format(name)
-#
-# def start_aws_instance(slave):
-#     pass
-#
-# def stop_aws_instance(slave):
-#     pass
-#
-# def query_aws_instance(slave):
-#     pass
-
+    if output:  # instance exists
+        # parse the output for all the tags
+        tags = output.split('Tags:', 1)[1].split('\n', 1)[0].split(',')
+        # make a dict out of the tags and return that
+        return dict(tag.replace(" ", "").split('->') for tag in tags)
+    return {}
