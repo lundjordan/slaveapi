@@ -82,7 +82,7 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data,
         tags.get('created')
     ])
     if validated:
-        return SUCCESS, tags  # return instance information
+        return SUCCESS, str(tags)  # return instance information
 
     fail_msg = ("{0} - Instance could not be confirmed created or puppetized. "
                 "Tags known: {1}".format(host, tags or "None"))
