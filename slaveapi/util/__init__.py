@@ -1,5 +1,8 @@
 # general util helper methods
 
+import sys
+import traceback
+
 
 def normalize_truthiness(target_value):
     true_values = ['y', 'yes', '1', 'true']
@@ -29,4 +32,22 @@ def value_in_values(target_value, valid_values, case_sensitive=False):
     if target_value in valid_values:
         return True
     else:
-        return False
+        raise ValueError(
+            "Unsupported value (%s) for truthiness. Accepted values: "
+            "truthy - %s, falsy - %s" % (value, true_values, false_values)
+        )
+
+
+def logException(log_fn, message=None):
+    """ A helper to dump exceptions with log filtered prefix
+    Useful for when you need to grep a log"""
+
+    tb_type, tb_value, tb_traceback = sys.exc_info()
+    if message is None:
+        message = ""
+    else:
+        message = "%s\n" % message
+    for s in traceback.format_exception(tb_type, tb_value, tb_traceback):
+        message += "%s\n" % s
+    for line in message.split("\n"):
+        log_fn(line)
