@@ -90,10 +90,27 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data,
     return FAILURE, fail_msg
 
 
-def query_aws_instance(name):
+def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
                                 'scripts/aws_manage_instances.py')
-    output = check_output(['python', query_script, 'status', name])
+    options = []
+    if dry_run:
+        options.append('--dry-run')
+    if force:
+        options.append('--force')
+
+    return check_output(['python', query_script] + options + [action, name])
+
+
+def terminate_instance(name):
+    output = _manage_instance(name, 'terminate', dry_run=True, force=True)
+
+    # TODO XXX - decide whether or not the instance was terminated
+    return SUCCESS
+
+
+def query_aws_instance(name):
+    output = _manage_instance(name, 'status')
 
     if output:  # instance exists
         # parse the output for all the tags
