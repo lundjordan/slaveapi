@@ -45,15 +45,14 @@ class Slave(Machine):
     def load_slavealloc_info(self):
         log.info("Getting slavealloc info")
         info = slavealloc.get_slave(config["slavealloc_api_url"], name=self.name)
-        if info:  # some slaves might not be in slavealloc. e.g., loans
-            self.enabled = info["enabled"]
-            self.basedir = info["basedir"].rstrip("/")
-            # Because we always work with UNIX style paths in SlaveAPI we need
-            # to massage basedir when a Windows style one is detected.
-            if self.basedir[1] == ":":
-                self.basedir = windows2msys(self.basedir)
-            self.notes = info["notes"]
         master_info = slavealloc.get_master(config["slavealloc_api_url"], info["current_masterid"])
+        self.enabled = info["enabled"]
+        self.basedir = info["basedir"].rstrip("/")
+        # Because we always work with UNIX style paths in SlaveAPI we need
+        # to massage basedir when a Windows style one is detected.
+        if self.basedir[1] == ":":
+            self.basedir = windows2msys(self.basedir)
+        self.notes = info["notes"]
         self.master = master_info.get("fqdn", None)
         if self.master:
             self.master_url = furl().set(scheme="http", host=self.master, port=master_info["http_port"])
@@ -128,7 +127,7 @@ class BuildbotSlave(Machine):
     # e.g. a foopy
     pass
 
-def get_console(slave, usebuildbotslave=False, usernames=None):
+def get_console(slave, usebuildbotslave=False):
     realslave = slave
     if usebuildbotslave:
         # Sometimes buildbot is run on different host than the slave
@@ -137,8 +136,7 @@ def get_console(slave, usebuildbotslave=False, usernames=None):
 
     console = SSHConsole(realslave.ip, config["ssh_credentials"])
     try:
-        # Make sure we can connect properly
-        console.connect(usernames=usernames)
+        console.connect()  # Make sure we can connect properly
         return console
     except (socket.error, SSHException), e:
         logException(log.error, e)
