@@ -11,11 +11,7 @@ def aws_terminate_instance(name):
 
     :param name: hostname of slave
 
-    :rtype: tuple
+    :rtype: tuple of status, msg
     """
     # TODO update problem tracking bug if one exists
-    status_msgs = ["Terminating aws instance: `{0}`".format(name)]
-    return_code, terminate_msg = aws.terminate_instance(name)
-    status_msgs.append(terminate_msg)
-
-    return return_code, "\n".join(status_msgs)
+    return aws.terminate_instance(name)

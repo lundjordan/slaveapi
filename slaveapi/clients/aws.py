@@ -7,7 +7,7 @@ from slaveapi.actions.results import SUCCESS, FAILURE
 log = logging.getLogger(__name__)
 from ..global_state import config
 
-INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist? aws output: '%s'"
+INSTANCE_NOT_FOUND_MSG = "Instance '%s' could not be determined. Does it exist?"
 
 def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
@@ -59,6 +59,7 @@ def terminate_instance(name):
             return SUCCESS, "Instance '%s' has been terminated" % (name,)
         else:
             # output should include '$name NOT terminated' but return all output for debugging
-            return FAILURE, "Something went wrong. Output received: '%s'" % logging_output
+            return (FAILURE, "Instance '%s' could not be terminated. "
+                             "output received: '%s'" % (name, logging_output))
     else:
-        return FAILURE, INSTANCE_NOT_FOUND_MSG % (name, logging_output)
+        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
