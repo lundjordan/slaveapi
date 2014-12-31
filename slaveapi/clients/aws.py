@@ -1,11 +1,13 @@
 import logging
 import os
-from subprocess import check_output
-from slaveapi.actions.results import SUCCESS
+import re
+import subprocess
+from slaveapi.actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 from ..global_state import config
 
+INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist?"
 
 def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
@@ -16,11 +18,48 @@ def _manage_instance(name, action, dry_run=False, force=False):
     if force:
         options.append('--force')
 
-    return check_output(['python', query_script] + options + [action, name])
+    # can't use check_output. need to capture stdout (print lines) and stderr (logging module lines)
+    p = subprocess.Popen(['python', query_script] + options + [action, name],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (std_output, logging_output) = p.communicate()
+    p.wait()
+    return std_output, logging_output
+
+
+def _query_aws_instance(name):
+    """
+    :param name: short-name of host
+    :return:
+        {'FQDN': 'dev-linux64-ec2-jlund.dev.releng.use1.mozilla.com',
+         'Name': 'dev-linux64-ec2-jlund',
+         'created': '2014-12-0501:11:43PST',
+         'moz-bug': '858797',
+         'moz-loaned-to': 'jlund@mozilla.com',
+         'moz-state': 'ready',
+         'moz-type': 'dev-linux64'}
+    """
+    std_output, logging_output = _manage_instance(name, 'status')
+
+    # we rely on print statements (std out) for instance status
+    if std_output:  # instance exists
+        # TODO - this is fragile. aws_manage_instances.py 'status' should return a dict ready string
+        # parse the output for all the tags
+        tags = std_output.split('Tags:', 1)[1].split('\n', 1)[0].split(',')
+        # make a dict out of the tags and return that
+        return dict(tag.replace(" ", "").split('->') for tag in tags)
+    return {}
 
 
 def terminate_instance(name):
-    output = _manage_instance(name, 'terminate', dry_run=True, force=True)
-
-    # TODO XXX - decide whether or not the instance was terminated
-    return SUCCESS
+    instance = _query_aws_instance(name)
+    if instance:
+        std_output, logging_output = _manage_instance(name, 'terminate', force=True, dry_run=True)
+        # we rely on logging module output to determine if instance has been terminated
+        terminated = re.search("%s terminated" % name, logging_output)
+        if terminated:
+            return SUCCESS, "Instance '%s' has been terminated" % (name,)
+        else:
+            # output should include '$name NOT terminated' but return all of the output for debugging
+            return FAILURE, "Something went wrong. Output received: '%s'" % logging_output
+    else:
+        return FAILURE, INSTANCE_NOT_FOUND_MSG % (name,)

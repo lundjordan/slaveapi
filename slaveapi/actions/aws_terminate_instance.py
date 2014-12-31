@@ -1,6 +1,6 @@
 import logging
 
-from ..slaveapi.clients import aws
+from ..clients import aws
 
 log = logging.getLogger(__name__)
 
