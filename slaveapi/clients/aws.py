@@ -9,7 +9,7 @@ from ..global_state import config
 
 INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist? Logging message: '%s'"
 
-def _manage_instance(name, action, dry_run=False, force=False):
+def _manage_instance(name, action, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
                                 'scripts/aws_manage_instances.py')
     options = []
