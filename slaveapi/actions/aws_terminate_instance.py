@@ -16,5 +16,6 @@ def aws_terminate_instance(name):
     # TODO update problem tracking bug if one exists
     status_msgs = ["Terminating aws instance: `{0}`\n".format(name)]
     return_code, terminate_msg = aws.terminate_instance(name)
+    status_msgs.append(terminate_msg)
 
     return return_code, "\n".join(status_msgs)
