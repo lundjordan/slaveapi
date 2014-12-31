@@ -7,7 +7,7 @@ from slaveapi.actions.results import SUCCESS, FAILURE
 log = logging.getLogger(__name__)
 from ..global_state import config
 
-INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist? Logging message: '%s'"
+INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist? aws output: '%s'"
 
 def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
@@ -18,7 +18,6 @@ def _manage_instance(name, action, dry_run=False, force=False):
     if force:
         options.append('--force')
 
-    # can't use check_output. need to capture stdout (print lines) and stderr (logging module lines)
     p = subprocess.Popen(['python', query_script] + options + [action, name],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (std_output, logging_output) = p.communicate()
@@ -59,7 +58,7 @@ def terminate_instance(name):
         if terminated:
             return SUCCESS, "Instance '%s' has been terminated" % (name,)
         else:
-            # output should include '$name NOT terminated' but return all of the output for debugging
+            # output should include '$name NOT terminated' but return all output for debugging
             return FAILURE, "Something went wrong. Output received: '%s'" % logging_output
     else:
         return FAILURE, INSTANCE_NOT_FOUND_MSG % (name, logging_output)
