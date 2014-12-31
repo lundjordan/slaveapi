@@ -9,7 +9,7 @@ from ..global_state import config
 
 INSTANCE_NOT_FOUND_MSG = "host '%s' could not be determined. Does it exist? Logging message: '%s'"
 
-def _manage_instance(name, action, force=False):
+def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
                                 'scripts/aws_manage_instances.py')
     options = []
@@ -53,7 +53,7 @@ def _query_aws_instance(name):
 def terminate_instance(name):
     instance, logging_output = _query_aws_instance(name)
     if instance:
-        std_output, logging_output = _manage_instance(name, 'terminate', force=True, dry_run=True)
+        std_output, logging_output = _manage_instance(name, 'terminate', force=True)
         # we rely on logging module output to determine if instance has been terminated
         terminated = re.search("%s terminated" % name, logging_output)
         if terminated:
