@@ -46,7 +46,7 @@ def _query_aws_instance(name):
         # parse the output for all the tags
         tags = std_output.split('Tags:', 1)[1].split('\n', 1)[0].split(',')
         # make a dict out of the tags and return that
-        return dict(tag.replace(" ", "").split('->') for tag in tags)
+        return dict(tag.replace(" ", "").split('->') for tag in tags), logging_output
     return {}, logging_output
 
 
