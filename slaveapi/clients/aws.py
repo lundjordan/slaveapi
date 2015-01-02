@@ -9,6 +9,7 @@ from ..global_state import config
 
 INSTANCE_NOT_FOUND_MSG = "Instance '%s' could not be found. Does it exist?"
 
+
 def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
                                 'scripts/aws_manage_instances.py')
@@ -62,5 +63,46 @@ def terminate_instance(name):
             # output should include '$name NOT terminated' but return all output for debugging
             return (FAILURE, "Instance '%s' could not be terminated. "
                              "output received: '%s'" % (name, logging_output))
+    else:
+        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+
+
+def start_instance(name):
+    instance, logging_output = _query_aws_instance(name)
+    if instance:
+        std_output, logging_output = _manage_instance(name, 'start')
+        # JLUND XXX TODO
+        # we rely on logging module output to determine if instance has been started
+        started = re.search("%s started" % name, logging_output)
+        if started:
+            return SUCCESS, "Instance '%s' has started" % (name,)
+        else:
+            return (FAILURE, "Instance '%s' could not be started. "
+                             "output received: '%s'" % (name, logging_output))
+    else:
+        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+
+
+def stop_instance(name):
+    instance, logging_output = _query_aws_instance(name)
+    if instance:
+        std_output, logging_output = _manage_instance(name, 'stop')
+        # XXX JLUND TODO
+        # we rely on logging module output to determine if instance has been terminated
+        stopped = re.search("%s stopped" % name, logging_output)
+        if stopped:
+            return SUCCESS, "Instance '%s' has stopped" % (name,)
+        else:
+            # output should include '$name NOT terminated' but return all output for debugging
+            return (FAILURE, "Instance '%s' could not be stopped. "
+                             "output received: '%s'" % (name, logging_output))
+    else:
+        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+
+
+def instance_status(name):
+    instance, logging_output = _query_aws_instance(name)
+    if instance:
+        return SUCCESS, "Instance '%s': %s" % (name, str(instance))
     else:
         return FAILURE, INSTANCE_NOT_FOUND_MSG % name
