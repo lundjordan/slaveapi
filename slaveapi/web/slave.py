@@ -10,7 +10,7 @@ from ..actions.buildslave_uptime import buildslave_uptime
 from ..actions.buildslave_last_activity import buildslave_last_activity
 from ..actions.disable import disable
 from ..slave import Slave as SlaveClass
-from slaveapi.actions.aws_terminate_instance import aws_terminate_instance
+from ..actions.aws_terminate_instance import aws_terminate_instance
 from ..util import normalize_truthiness
 
 log = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ class Disable(ActionView):
 class AWSTerminateInstance(ActionView):
     """Terminate aws instance if it exists.
     :py:class:`slaveapi.web.action_base.ActionView` for details on GET and POST
-    methods. See :py:func:`slaveapi.actions.buildslave_last_activity.buildslave_last_activity`
+    methods. See :py:func:`slaveapi.actions.aws_terminate_instance.aws_terminate_instance`
     for details on how LastActivity is retrieved."""
     def __init__(self, *args, **kwargs):
         self.action = aws_terminate_instance

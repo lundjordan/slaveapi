@@ -2,12 +2,12 @@ import logging
 import os
 import re
 import subprocess
-from slaveapi.actions.results import SUCCESS, FAILURE
+from ..actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 from ..global_state import config
 
-INSTANCE_NOT_FOUND_MSG = "Instance '%s' could not be determined. Does it exist?"
+INSTANCE_NOT_FOUND_MSG = "Instance '%s' could not be found. Does it exist?"
 
 def _manage_instance(name, action, dry_run=False, force=False):
     query_script = os.path.join(config['cloud_tools_path'],
@@ -42,6 +42,7 @@ def _query_aws_instance(name):
     # we rely on print statements (std out) for instance status
     if std_output:  # instance exists
         # TODO - this is fragile. aws_manage_instances.py 'status' should return a dict ready string
+        #      - filed: Bug 1117173 - aws_manage_instances should return status codes and json output
         # parse the output for all the tags
         tags = std_output.split('Tags:', 1)[1].split('\n', 1)[0].split(',')
         # make a dict out of the tags and return that
