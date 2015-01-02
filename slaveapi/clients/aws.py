@@ -51,53 +51,38 @@ def _query_aws_instance(name):
     return {}, logging_output
 
 
-def terminate_instance(name):
+def _action_on_instance(name, action, force, success_regex, success_msg):
     instance, logging_output = _query_aws_instance(name)
     if instance:
-        std_output, logging_output = _manage_instance(name, 'terminate', force=True)
+        std_output, logging_output = _manage_instance(name, action, force=force)
         # we rely on logging module output to determine if instance has been terminated
-        terminated = re.search("%s terminated" % name, logging_output)
+        terminated = re.search(success_regex, logging_output)
         if terminated:
-            return SUCCESS, "Instance '%s' has been terminated" % (name,)
+            return SUCCESS, success_msg
         else:
             # output should include '$name NOT terminated' but return all output for debugging
-            return (FAILURE, "Instance '%s' could not be terminated. "
-                             "output received: '%s'" % (name, logging_output))
+            return (FAILURE, "Action could not be completed. Something went wrong"
+                             "output received: '%s'" % logging_output)
     else:
         return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+
+
+def terminate_instance(name):
+    return _action_on_instance(name, 'terminate', force=True,
+                               success_regex="%s terminated" % (name,),
+                               success_msg="Instance '%s' has been terminated" % (name,))
 
 
 def start_instance(name):
-    instance, logging_output = _query_aws_instance(name)
-    if instance:
-        std_output, logging_output = _manage_instance(name, 'start')
-        # JLUND XXX TODO
-        # we rely on logging module output to determine if instance has been started
-        started = re.search("%s started" % name, logging_output)
-        if started:
-            return SUCCESS, "Instance '%s' has started" % (name,)
-        else:
-            return (FAILURE, "Instance '%s' could not be started. "
-                             "output received: '%s'" % (name, logging_output))
-    else:
-        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+    return _action_on_instance(name, 'start', force=False,
+                               success_regex="Starting %s" % (name,),
+                               success_msg="Instance '%s' starting" % (name,))
 
 
 def stop_instance(name):
-    instance, logging_output = _query_aws_instance(name)
-    if instance:
-        std_output, logging_output = _manage_instance(name, 'stop')
-        # XXX JLUND TODO
-        # we rely on logging module output to determine if instance has been terminated
-        stopped = re.search("%s stopped" % name, logging_output)
-        if stopped:
-            return SUCCESS, "Instance '%s' has stopped" % (name,)
-        else:
-            # output should include '$name NOT terminated' but return all output for debugging
-            return (FAILURE, "Instance '%s' could not be stopped. "
-                             "output received: '%s'" % (name, logging_output))
-    else:
-        return FAILURE, INSTANCE_NOT_FOUND_MSG % name
+    return _action_on_instance(name, 'stop', force=False,
+                               success_regex="Stopping %s" % (name,),
+                               success_msg="Instance '%s' stopping" % (name,))
 
 
 def instance_status(name):
