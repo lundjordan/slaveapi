@@ -128,7 +128,7 @@ class BuildbotSlave(Machine):
     # e.g. a foopy
     pass
 
-def get_console(slave, usebuildbotslave=False, usernames=None):
+def get_console(slave, usebuildbotslave=False):
     realslave = slave
     if usebuildbotslave:
         # Sometimes buildbot is run on different host than the slave
@@ -137,8 +137,7 @@ def get_console(slave, usebuildbotslave=False, usernames=None):
 
     console = SSHConsole(realslave.ip, config["ssh_credentials"])
     try:
-        # Make sure we can connect properly
-        console.connect(usernames=usernames)
+        console.connect()  # Make sure we can connect properly
         return console
     except (socket.error, SSHException), e:
         logException(log.error, e)
