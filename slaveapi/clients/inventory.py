@@ -88,8 +88,8 @@ def get_system(fqdn):
     url.path.add("system")
     url.args["format"] = "json"
     url.args["hostname"] = fqdn
-    auth = (USERNAME, PASSWORD)
-    log.debug("%s - Making request to %s", fqdn, url)
+    auth = (username, password)
+    log.debug("Making request to %s", url)
     info = defaultdict(lambda: None)
     try:
         result = requests.get(str(url), auth=auth).json()["objects"][0]
