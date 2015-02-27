@@ -11,7 +11,6 @@ from ..actions.buildslave_last_activity import buildslave_last_activity
 from ..actions.disable import disable
 from ..slave import Slave as SlaveClass
 from ..actions.aws_terminate_instance import aws_terminate_instance
-from ..actions.aws_instance_status import aws_instance_status
 from ..actions.aws_start_instance import aws_start_instance
 from ..actions.aws_stop_instance import aws_stop_instance
 from ..util import normalize_truthiness
@@ -115,14 +114,4 @@ class AWSStartInstance(ActionView):
     for details on how LastActivity is retrieved."""
     def __init__(self, *args, **kwargs):
         self.action = aws_start_instance
-        ActionView.__init__(self, *args, **kwargs)
-
-
-class AWSInstanceStatus(ActionView):
-    """query aws instance if it exists.
-    :py:class:`slaveapi.web.action_base.ActionView` for details on GET and POST
-    methods. See :py:func:`slaveapi.actions.aws_instance_status.aws_instance_status`
-    for details on how LastActivity is retrieved."""
-    def __init__(self, *args, **kwargs):
-        self.action = aws_instance_status
         ActionView.__init__(self, *args, **kwargs)
