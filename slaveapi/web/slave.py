@@ -10,13 +10,9 @@ from ..actions.buildslave_uptime import buildslave_uptime
 from ..actions.buildslave_last_activity import buildslave_last_activity
 from ..actions.disable import disable
 from ..slave import Slave as SlaveClass
-<<<<<<< HEAD
-from slaveapi.actions.aws_create_instance import aws_create_instance
-from ..util import normalize_truthiness, value_in_values
-=======
+from ..actions.aws_create_instance import aws_create_instance
 from ..actions.aws_terminate_instance import aws_terminate_instance
-from ..util import normalize_truthiness
->>>>>>> master
+from ..util import normalize_truthiness, value_in_values
 
 log = logging.getLogger(__name__)
 
@@ -90,7 +86,6 @@ class Disable(ActionView):
                                          reason=reason, **kwargs)
 
 
-<<<<<<< HEAD
 class AWSCreateInstance(ActionView):
     """Request an AWS slave to be instantiated. See
     :py:class:`slaveapi.web.action_base.ActionView` for details on GET and POST
@@ -139,7 +134,7 @@ class AWSCreateInstance(ActionView):
             instance_type=required_fields['instance_type'],
             arch=optional_fields['arch'], **kwargs
         )
-=======
+
 class AWSTerminateInstance(ActionView):
     """Terminate aws instance if it exists.
     :py:class:`slaveapi.web.action_base.ActionView` for details on GET and POST
@@ -148,5 +143,3 @@ class AWSTerminateInstance(ActionView):
     def __init__(self, *args, **kwargs):
         self.action = aws_terminate_instance
         ActionView.__init__(self, *args, **kwargs)
-
->>>>>>> master
