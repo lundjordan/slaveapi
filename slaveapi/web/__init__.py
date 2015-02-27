@@ -3,6 +3,7 @@ from flask import Flask
 from .results import Results
 from .slave import Reboot, Slave, ShutdownBuildslave, GetUptime, GetLastActivity
 from .slave import Disable, AWSCreateInstance, AWSTerminateInstance
+from .slave import AWSStartInstance, AWSStopInstance
 from .slaves import Slaves
 
 app = Flask(__name__)
@@ -17,3 +18,5 @@ app.add_url_rule("/slaves/<slave>/actions/shutdown_buildslave", view_func=Shutdo
 app.add_url_rule("/slaves/<slave>/actions/disable", view_func=Disable.as_view("disable"), methods=["GET", "POST"])
 app.add_url_rule("/slaves/<slave>/actions/aws_create_instance", view_func=AWSCreateInstance.as_view("aws_create_instance"), methods=["GET", "POST"])
 app.add_url_rule("/slaves/<slave>/actions/terminate", view_func=AWSTerminateInstance.as_view("aws_terminate_instance"), methods=["GET", "POST"])
+app.add_url_rule("/slaves/<slave>/actions/start", view_func=AWSStartInstance.as_view("aws_start_instance"), methods=["GET", "POST"])
+app.add_url_rule("/slaves/<slave>/actions/stop", view_func=AWSStopInstance.as_view("aws_stop_instance"), methods=["GET", "POST"])
