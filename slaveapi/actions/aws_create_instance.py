@@ -2,9 +2,9 @@ import logging
 import time
 
 from ..clients import inventory
-from ..slaveapi.clients import aws
+from ..clients import aws
 from .results import SUCCESS
-from ..slaveapi.util import value_in_values
+from ..util import value_in_values
 
 log = logging.getLogger(__name__)
 
