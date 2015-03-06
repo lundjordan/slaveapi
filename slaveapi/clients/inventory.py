@@ -10,9 +10,6 @@ from slaveapi.actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 
-API = config["inventory_api_url"]
-USERNAME = config["inventory_username"]
-PASSWORD = config["inventory_password"]
 
 def find_key_value(info, wanted_key):
     if not info["key_value"]:
@@ -26,7 +23,7 @@ def find_key_value(info, wanted_key):
 
 
 def _create_record(ip, payload, desc, _type):
-    url = furl(API)
+    url = furl(config["inventory_api_url"])
 
     # remove un-needed removal once bug 1030332 is resolved
     url.path.remove(str(url.path))  # trims path if present
@@ -40,7 +37,7 @@ def _create_record(ip, payload, desc, _type):
         "ip_type": "4",
         "views": ["private"],
     })
-    auth = (USERNAME, PASSWORD)
+    auth = (config["inventory_username"], config["inventory_password"])
     return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
     return_msg += "auth: {0}..".format(auth)   # xxx debug
@@ -81,7 +78,7 @@ def create_dns(ip, fqdn, desc):
 
 
 def get_system(fqdn):
-    url = furl(API)
+    url = furl(config["inventory_api_url"])
 
     # remove condition when bug 1030332 is resolved. below supports api
     # without any path set
