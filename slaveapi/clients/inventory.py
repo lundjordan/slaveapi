@@ -43,21 +43,24 @@ def _create_record(ip, payload, desc, _type):
     auth = (USERNAME, PASSWORD)
     return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
-    try:
-        response = requests.post(str(url), data=payload, auth=auth)
-    except RequestException as e:
-        return_msg += ("{0} - exception while creating {1} in "
-                       "inventory: {2}".format(ip, _type, e))
-        log.exception(return_msg)
-        return FAILURE, return_msg
+    return_msg += "auth: {0}..".format(auth)   # xxx debug
+    return SUCCESS, return_msg  # xxx debug
 
-    if response.status_code == 200:
-        return SUCCESS, "Success"
-    else:
-        return_msg = "Failed\n{0} - error response msg: {1}".format(
-            response.status_code, response.reason
-        )
-        return FAILURE, return_msg
+    # try:
+    #     response = requests.post(str(url), data=payload, auth=auth)
+    # except RequestException as e:
+    #     return_msg += ("{0} - exception while creating {1} in "
+    #                    "inventory: {2}".format(ip, _type, e))
+    #     log.exception(return_msg)
+    #     return FAILURE, return_msg
+    #
+    # if response.status_code == 200:
+    #     return SUCCESS, "Success"
+    # else:
+    #     return_msg = "Failed\n{0} - error response msg: {1}".format(
+    #         response.status_code, response.reason
+    #     )
+    #     return FAILURE, return_msg
 
 
 def create_address_record(ip, fqdn, desc):

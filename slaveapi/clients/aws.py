@@ -38,7 +38,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
     config_path = os.path.join(config['cloud_tools_path'],
                                'configs', aws_config)
     attempt = 1
-    while attempt < max_attempts:
+    while attempt <= max_attempts:
         ip = subprocess.check_output(
             'python {free_ip} -c {config} -r {region} -n1'.format(
                 free_ip=free_ip_script, config=config_path, region=region
@@ -139,34 +139,40 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data,
     create_script = os.path.join(config['cloud_tools_path'], 'scripts/aws_create_instance.py')
     config_path = os.path.join(config['cloud_tools_path'], 'configs', aws_config)
     data_path = os.path.join(config['cloud_tools_path'], 'instance_data', data)
-    try:
-        subprocess.check_call(
-            ['python', create_script, '-c', config_path, '-r', region, '-s',
-             'aws-releng', '--ssh-key', config['aws_ssh_key'], '-k',
-             config['aws_secrets'], '--loaned-to', email, '--bug', bug,
-             '-i', data_path, fqdn], cwd=config['aws_base_path'],
-        )
-    except subprocess.CalledProcessError as e:
-        fail_msg = "{0} - failed to create instance. error: {1}".format(host, e)
-        log.warning(fail_msg)
-        return FAILURE, fail_msg
-
-    # return code of check_call was good, let's poke the status of this instance
-    tags, logging_output = _query_aws_instance(host)
-
-    # aws_create_instance.py adds certain tags for validation.
-    # e.g. if 'moz-state' == 'ready' we puppetized properly
-    validated = all([
-        tags.get('FQDN') == fqdn,
-        tags.get('moz-loaned-to') == email,
-        tags.get('moz-state') == 'ready',
-        tags.get('created')
-    ])
-    if validated:
-        return SUCCESS, tags  # return instance information
-
-    fail_msg = ("{0} - Instance could not be confirmed created or puppetized. "
-                "Tags known: {1}".format(host, tags or "None"))
-    log.warning(fail_msg)
-    return FAILURE, fail_msg
+    # xxx debug
+    cmd = ['python', create_script, '-c', config_path, '-r', region, '-s',
+     'aws-releng', '--ssh-key', config['aws_ssh_key'], '-k',
+     config['aws_secrets'], '--loaned-to', email, '--bug', bug,
+     '-i', data_path, fqdn]
+    return FAILURE, str(cmd + [config['aws_base_path']])
+    # try:
+    #     subprocess.check_call(
+    #         ['python', create_script, '-c', config_path, '-r', region, '-s',
+    #          'aws-releng', '--ssh-key', config['aws_ssh_key'], '-k',
+    #          config['aws_secrets'], '--loaned-to', email, '--bug', bug,
+    #          '-i', data_path, fqdn], cwd=config['aws_base_path'],
+    #     )
+    # except subprocess.CalledProcessError as e:
+    #     fail_msg = "{0} - failed to create instance. error: {1}".format(host, e)
+    #     log.warning(fail_msg)
+    #     return FAILURE, fail_msg
+    #
+    # # return code of check_call was good, let's poke the status of this instance
+    # tags, logging_output = _query_aws_instance(host)
+    #
+    # # aws_create_instance.py adds certain tags for validation.
+    # # e.g. if 'moz-state' == 'ready' we puppetized properly
+    # validated = all([
+    #     tags.get('FQDN') == fqdn,
+    #     tags.get('moz-loaned-to') == email,
+    #     tags.get('moz-state') == 'ready',
+    #     tags.get('created')
+    # ])
+    # if validated:
+    #     return SUCCESS, str(tags)  # return instance information
+    #
+    # fail_msg = ("{0} - Instance could not be confirmed created or puppetized. "
+    #             "Tags known: {1}".format(host, tags or "None"))
+    # log.warning(fail_msg)
+    # return FAILURE, fail_msg
 
