@@ -32,10 +32,7 @@ def value_in_values(target_value, valid_values, case_sensitive=False):
     if target_value in valid_values:
         return True
     else:
-        raise ValueError(
-            "Unsupported value (%s) for truthiness. Accepted values: "
-            "truthy - %s, falsy - %s" % (value, true_values, false_values)
-        )
+        return False
 
 
 def logException(log_fn, message=None):

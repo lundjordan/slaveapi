@@ -122,7 +122,7 @@ class AWSCreateInstance(ActionView):
             )
 
         if (required_fields['instance_type'] == 'build' and
-                optional_fields == '64'):
+                optional_fields == '32'):
             return make_response(
                 jsonify(
                     {'error': 'mismatching instance_type and arch',

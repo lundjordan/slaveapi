@@ -14,12 +14,10 @@ INSTANCE_NOT_FOUND_MSG = "Instance '%s' could not be found. Does it exist?"
 def ip_is_valid(address):
     try:
         socket.inet_aton(address)
-        ip = True
+        return True
     except socket.error:
-        ip = False
-
-    log.debug("{ip} -- free_ips.py generated a non valid ip".format(address))
-    return ip
+        log.debug("{ip} -- free_ips.py generated a non valid ip".format(address))
+        return False
 
 
 def ip_is_free(address):
