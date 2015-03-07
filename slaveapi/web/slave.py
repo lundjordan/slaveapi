@@ -111,7 +111,7 @@ class AWSCreateInstance(ActionView):
         if not any(required_fields.keys()):
             return missing_fields_response(required_fields)
 
-        if not value_in_values(aws_create_instance['instance_type'],
+        if not value_in_values(required_fields['instance_type'],
                                ['build', 'test']):
             return make_response(
                 jsonify(
