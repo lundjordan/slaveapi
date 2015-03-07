@@ -9,7 +9,7 @@ from ..util import value_in_values
 log = logging.getLogger(__name__)
 
 
-def aws_create_instance(email, bug, instance_type, arch=64):
+def aws_create_instance(name, email, bug, instance_type, arch=64):
     """Attempts to create an aws instance for a given owner
 
 
@@ -32,14 +32,19 @@ def aws_create_instance(email, bug, instance_type, arch=64):
     # strip out the nickname of the loanee from their email
     nick = email.split('@')[0]
 
+
     if instance_type == 'build':
-        host = 'dev-linux64-ec2-%s' % nick
-        fqdn = '%s.dev.releng.use1.mozilla.com' % host
+        if name == 'unknown':
+            # since this slave does not exist yet, this allows for a default to be created
+            name = 'dev-linux64-ec2-%s' % nick
+        fqdn = '%s.dev.releng.use1.mozilla.com' % name
         aws_config = 'dev-linux%s' % arch
         data = 'us-east-1.instance_data_dev.json'
     else:  # instance_type == 'test'
-        host = 'tst-linux%s-ec2-%s' % (arch, nick)
-        fqdn = '%s.test.releng.use1.mozilla.com' % host
+        if name == 'unknown':
+            # since this slave does not exist yet, this allows for a default to be created
+            name = 'tst-linux%s-ec2-%s' % (arch, nick)
+        fqdn = '%s.test.releng.use1.mozilla.com' % name
         aws_config = 'tst-linux%s' % arch
         data = 'us-east-1.instance_data_tests.json'
 
@@ -50,7 +55,7 @@ def aws_create_instance(email, bug, instance_type, arch=64):
     status_msgs.append("generating free ip...")
     # xxx debug
     status_msgs.append("fqdn: {0}, host: {1}, email: {2}, bug: {3}, aws_config: {4}, "
-                       "data: {5}".format(fqdn, host, email, bug, aws_config, data))
+                       "data: {5}".format(fqdn, name, email, bug, aws_config, data))
     # ip = aws.get_free_ip(aws_config)
     ip = '111.22.33.444'
     # status_msgs.append("ip: {0}".format(ip))  # xxx debug
@@ -61,18 +66,18 @@ def aws_create_instance(email, bug, instance_type, arch=64):
         record_desc = "bug {num}: loaner for {nick}".format(num=bug, nick=nick)
         return_code, return_msg = inventory.create_dns(ip, fqdn, record_desc)
     else:
-        log.warning("host: {0} - failed to generate a free ip".format(host))
+        log.warning("host: {0} - failed to generate a free ip".format(name))
         status_msgs.append("failed to generate a free ip")
 
     if return_code == SUCCESS:
         status_msgs.append("Success\nwaiting for DNS to propagate...")
-        log.debug("host: {0} - waiting for DNS to propagate".format(host))
+        log.debug("host: {0} - waiting for DNS to propagate".format(name))
         # TODO - rather than waiting 20 min, maybe we can poll
-        # inventory.get_system(host) and if that yields a result, we can say
+        # inventory.get_system(name) and if that yields a result, we can say
         # it's propagated?
         # time.sleep(20 * 60)  # xxx jlund
         status_msgs.append("Success\ncreating and assimilating aws instance...")
-        return_code, result = aws.create_aws_instance(fqdn, host, email,
+        return_code, result = aws.create_aws_instance(fqdn, name, email,
                                                           bug, aws_config, data)
         if return_code == SUCCESS:
             instance = dict(result)
