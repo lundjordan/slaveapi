@@ -108,7 +108,7 @@ class AWSCreateInstance(ActionView):
             'arch': request.form.get('arch')
         }
 
-        if not any(required_fields.keys()):
+        if not all(required_fields.values()):
             return missing_fields_response(required_fields)
 
         if not value_in_values(required_fields['instance_type'],
