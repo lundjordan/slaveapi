@@ -9,7 +9,7 @@ from ..util import value_in_values
 log = logging.getLogger(__name__)
 
 
-def aws_create_instance(name, email, bug, instance_type, arch=64):
+def aws_create_instance(name, email, bug, instance_type, arch=None):
     """Attempts to create an aws instance for a given owner
 
 
@@ -27,21 +27,23 @@ def aws_create_instance(name, email, bug, instance_type, arch=64):
     # web end point will verify these validations but we should still double
     # check in case this is called from another location, e.g. another action
     assert value_in_values(instance_type, ['build', 'test'])
-    assert arch != 32 and instance_type == 'build'
+    assert not (arch == 32 and instance_type == 'build')
+
+    if not arch:
+        arch = 64
 
     # strip out the nickname of the loanee from their email
     nick = email.split('@')[0]
 
-
     if instance_type == 'build':
-        if name == 'unknown':
+        if name == 'default':
             # since this slave does not exist yet, this allows for a default to be created
             name = 'dev-linux64-ec2-%s' % nick
         fqdn = '%s.dev.releng.use1.mozilla.com' % name
         aws_config = 'dev-linux%s' % arch
         data = 'us-east-1.instance_data_dev.json'
     else:  # instance_type == 'test'
-        if name == 'unknown':
+        if name == 'default':
             # since this slave does not exist yet, this allows for a default to be created
             name = 'tst-linux%s-ec2-%s' % (arch, nick)
         fqdn = '%s.test.releng.use1.mozilla.com' % name
