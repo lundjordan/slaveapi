@@ -57,7 +57,7 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
 
     status_msgs.append("generating free ip...")
     ip = aws.get_free_ip(aws_config)
-    return FAILURE, ip
+    return return_code, ip
     #
     # if ip:
     #     status_msgs.append("Success\ncreating dns records...")
