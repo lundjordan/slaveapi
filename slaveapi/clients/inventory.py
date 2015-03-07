@@ -40,24 +40,21 @@ def _create_record(ip, payload, desc, _type):
     auth = (config["inventory_username"], config["inventory_password"])
     return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
-    return_msg += "auth: {0}..".format(auth)   # xxx debug
-    return SUCCESS, return_msg  # xxx debug
+    try:
+        response = requests.post(str(url), data=payload, auth=auth)
+    except RequestException as e:
+        return_msg += ("{0} - exception while creating {1} in "
+                       "inventory: {2}".format(ip, _type, e))
+        log.exception(return_msg)
+        return FAILURE, return_msg
 
-    # try:
-    #     response = requests.post(str(url), data=payload, auth=auth)
-    # except RequestException as e:
-    #     return_msg += ("{0} - exception while creating {1} in "
-    #                    "inventory: {2}".format(ip, _type, e))
-    #     log.exception(return_msg)
-    #     return FAILURE, return_msg
-    #
-    # if response.status_code == 200:
-    #     return SUCCESS, "Success"
-    # else:
-    #     return_msg = "Failed\n{0} - error response msg: {1}".format(
-    #         response.status_code, response.reason
-    #     )
-    #     return FAILURE, return_msg
+    if response.status_code == 200:
+        return SUCCESS, "Success"
+    else:
+        return_msg = "Failed\n{0} - error response msg: {1}".format(
+            response.status_code, response.reason
+        )
+        return FAILURE, return_msg
 
 
 def create_address_record(ip, fqdn, desc):
@@ -88,7 +85,7 @@ def get_system(fqdn):
     url.path.add("system")
     url.args["format"] = "json"
     url.args["hostname"] = fqdn
-    auth = (username, password)
+    auth = (config["inventory_username"], config["inventory_password"])
     log.debug("Making request to %s", url)
     info = defaultdict(lambda: None)
     try:

@@ -23,6 +23,7 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
     :rtype: tuple
     """
     # TODO allow for region us west as well
+    # TODO allow for more platforms as more platforms get aws'ified
 
     # web end point will verify these validations but we should still double
     # check in case this is called from another location, e.g. another action
@@ -55,12 +56,7 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
 
 
     status_msgs.append("generating free ip...")
-    # xxx debug
-    status_msgs.append("fqdn: {0}, host: {1}, email: {2}, bug: {3}, aws_config: {4}, "
-                       "data: {5}".format(fqdn, name, email, bug, aws_config, data))
-    # ip = aws.get_free_ip(aws_config)
-    ip = '111.22.33.444'
-    # status_msgs.append("ip: {0}".format(ip))  # xxx debug
+    ip = aws.get_free_ip(aws_config)
 
     if ip:
         status_msgs.append("Success\ncreating dns records...")
@@ -77,7 +73,7 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
         # TODO - rather than waiting 20 min, maybe we can poll
         # inventory.get_system(name) and if that yields a result, we can say
         # it's propagated?
-        # time.sleep(20 * 60)  # xxx jlund
+        time.sleep(20 * 60)
         status_msgs.append("Success\ncreating and assimilating aws instance...")
         return_code, result = aws.create_aws_instance(fqdn, name, email,
                                                           bug, aws_config, data)
