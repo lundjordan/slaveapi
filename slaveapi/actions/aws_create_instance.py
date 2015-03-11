@@ -58,17 +58,19 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
     status_msgs.append("generating free ip...")
     ip = aws.get_free_ip(aws_config)
 
-    return FAILURE, ip
+    if ip:
+        status_msgs.append("Success\ncreating dns records...")
 
-    # if ip:
-    #     status_msgs.append("Success\ncreating dns records...")
-    #
-    #     record_desc = "bug {num}: loaner for {nick}".format(num=bug, nick=nick)
-    #     return_code, return_msg = inventory.create_dns(ip, fqdn, record_desc)
-    # else:
-    #     log.warning("host: {0} - failed to generate a free ip".format(name))
-    #     status_msgs.append("failed to generate a free ip")
-    #
+        record_desc = "bug {num}: loaner for {nick}".format(num=bug, nick=nick)
+        return_code, return_msg = inventory.create_dns(ip, fqdn, record_desc)
+    else:
+        log.warning("host: {0} - failed to generate a free ip".format(name))
+        status_msgs.append("failed to generate a free ip")
+
+    if return_code == SUCCESS:
+        status_msgs.append("Success\nwaiting for DNS to propagate...")
+    return return_code, "\n".join(status_msgs)
+
     # if return_code == SUCCESS:
     #     status_msgs.append("Success\nwaiting for DNS to propagate...")
     #     log.debug("host: {0} - waiting for DNS to propagate".format(name))
