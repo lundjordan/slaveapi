@@ -33,7 +33,7 @@ def ip_is_free(address):
 
 
 def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
-    free_ips = os.path.join(config['cloud_tools_path'], 'cloudtools', 'scripts', 'free_ips.py')
+    free_ips = os.path.join(config['cloud_tools_path'], 'scripts', 'free_ips.py')
     config_path = os.path.join(config['cloud_tools_path'],
                                'configs', aws_config)
 
@@ -52,8 +52,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
 
 
 def _manage_instance(name, action, dry_run=False, force=False):
-    query_script = os.path.join(config['cloud_tools_path'], 'cloudtools', 'scripts',
-                                'aws_manage_instances.py')
+    query_script = os.path.join(config['cloud_tools_path'], 'scripts', 'aws_manage_instances.py')
     options = []
     if dry_run:
         options.append('--dry-run')
@@ -136,8 +135,7 @@ def instance_status(name):
 
 def create_aws_instance(fqdn, host, email, bug, aws_config, data,
                         region='use-east-1'):
-    create_script = os.path.join(config['cloud_tools_path'], 'cloudtools', 'scripts',
-                                 'aws_create_instance.py')
+    create_script = os.path.join(config['cloud_tools_path'], 'scripts', 'aws_create_instance.py')
     config_path = os.path.join(config['cloud_tools_path'], 'configs', aws_config)
     data_path = os.path.join(config['cloud_tools_path'], 'instance_data', data)
 
