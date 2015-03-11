@@ -16,7 +16,7 @@ def ip_is_valid(address):
         socket.inet_aton(address)
         return True
     except socket.error:
-        log.debug("{ip} -- free_ips.py generated a non valid ip".format(address))
+        log.debug("{0} -- free_ips.py generated a non valid ip".format(address))
         return False
 
 
@@ -28,7 +28,7 @@ def ip_is_free(address):
     except socket.herror:
         # no address found with that ip so we can assume it is free!
         free = True
-    log.debug("{ip} - free_ips.py generated a non free ip".format(address))
+        log.debug("{0} - free_ips.py generated a non free ip".format(address))
     return free
 
 
@@ -40,7 +40,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
     attempt = 1
     while attempt <= max_attempts:
         ip = subprocess.check_output(
-            ['python', free_ips, '-c', config_path, '-r', 'region', '-n1']
+            ['python', free_ips, '-c', config_path, '-r', region, '-n1']
         )
         if ip_is_valid(ip):
             if ip_is_free(ip):
