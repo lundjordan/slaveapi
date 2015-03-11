@@ -49,7 +49,7 @@ def _create_record(ip, payload, desc, _type):
         return FAILURE, return_msg
 
     if response.status_code == 200:
-        return SUCCESS, "Success"
+        return SUCCESS, return_msg
     else:
         return_msg = "Failed\n{0} - error response msg: {1}".format(
             response.status_code, response.reason
@@ -68,10 +68,10 @@ def create_ptr_record(ip, fqdn, desc):
 
 
 def create_dns(ip, fqdn, desc):
-    return_code, msg = create_address_record(ip, fqdn, desc)
+    return_code, a_msg = create_address_record(ip, fqdn, desc)
     if return_code == SUCCESS:
-        return_code, msg = create_ptr_record(ip, fqdn, desc)
-    return return_code, msg
+        return_code, ptr_msg = create_ptr_record(ip, fqdn, desc)
+    return return_code, "\n".join([a_msg, ptr_msg])
 
 
 def get_system(fqdn):
