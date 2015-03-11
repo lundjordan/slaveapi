@@ -38,21 +38,18 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
     config_path = os.path.join(config['cloud_tools_path'],
                                'configs', aws_config)
 
-    return 'python {free_ip} -c {config} -r {region} -n1'.format(
-        free_ip=free_ip_script, config=config_path, region=region
-    )
-    # attempt = 1
-    # while attempt <= max_attempts:
-    #     ip = subprocess.check_output(
-    #         'python {free_ip} -c {config} -r {region} -n1'.format(
-    #             free_ip=free_ip_script, config=config_path, region=region
-    #         )
-    #     )
-    #     if ip_is_valid(ip):
-    #         if ip_is_free(ip):
-    #             return ip
-    #     attempt += 1
-    # return None
+    attempt = 1
+    while attempt <= max_attempts:
+        ip = subprocess.check_output(
+            'python {free_ip} -c {config} -r {region} -n1'.format(
+                free_ip=free_ip_script, config=config_path, region=region
+            ),
+        )
+        if ip_is_valid(ip):
+            if ip_is_free(ip):
+                return ip
+        attempt += 1
+    return None
 
 
 def _manage_instance(name, action, dry_run=False, force=False):
