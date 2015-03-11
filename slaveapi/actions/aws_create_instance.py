@@ -63,7 +63,6 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
 
         record_desc = "bug {num}: loaner for {nick}".format(num=bug, nick=nick)
         return_code, return_msg = inventory.create_dns(ip, fqdn, record_desc)
-        status_msgs.append(return_msg)
     else:
         log.warning("host: {0} - failed to generate a free ip".format(name))
         status_msgs.append("failed to generate a free ip")
@@ -88,5 +87,8 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
     #         return SUCCESS, str(instance)  # just return instance info
     #
     #     status_msgs.append(result)
+    # else:
+    #     log.warning(return_msg)
+    #     status_msgs.append(return_msg)
     #
     # return return_code, "\n".join(status_msgs)

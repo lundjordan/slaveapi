@@ -41,6 +41,7 @@ def _create_record(ip, payload, desc, _type):
     return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
     try:
+        log.info(return_msg)
         response = requests.post(str(url), data=payload, auth=auth)
     except RequestException as e:
         return_msg += ("{0} - exception while creating {1} in "
@@ -49,11 +50,12 @@ def _create_record(ip, payload, desc, _type):
         return FAILURE, return_msg
 
     if response.status_code == 200:
-        return SUCCESS, return_msg
+        return SUCCESS, "Success"
     else:
         return_msg = "Failed\n{0} - error response msg: {1}".format(
             response.status_code, response.reason
         )
+        log.warning(return_msg)
         return FAILURE, return_msg
 
 
@@ -68,10 +70,10 @@ def create_ptr_record(ip, fqdn, desc):
 
 
 def create_dns(ip, fqdn, desc):
-    return_code, a_msg = create_address_record(ip, fqdn, desc)
+    return_code, msg = create_address_record(ip, fqdn, desc)
     if return_code == SUCCESS:
-        return_code, ptr_msg = create_ptr_record(ip, fqdn, desc)
-    return return_code, "\n".join([a_msg, ptr_msg])
+        return_code, msg = create_ptr_record(ip, fqdn, desc)
+    return return_code, msg
 
 
 def get_system(fqdn):
