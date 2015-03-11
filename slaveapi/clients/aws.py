@@ -40,10 +40,7 @@ def get_free_ip(aws_config, region='us-east-1', max_attempts=3):
     attempt = 1
     while attempt <= max_attempts:
         ip = subprocess.check_output(
-            ['python {free_ip} -c {config} -r {region} -n1'.format(free_ip=free_ips,
-                                                                   config=config_path,
-                                                                   region=region)
-            ],
+            ['python', free_ips, '-c', config_path, '-r', 'region', '-n1']
         )
         if ip_is_valid(ip):
             if ip_is_free(ip):
