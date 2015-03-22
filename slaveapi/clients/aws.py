@@ -3,7 +3,7 @@ import os
 import socket
 import subprocess
 import re
-from slaveapi.actions.results import FAILURE, SUCCESS
+from ..actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 from ..global_state import config
