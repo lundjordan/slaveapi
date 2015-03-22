@@ -66,7 +66,7 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
 
         if return_code == SUCCESS:
             status_msgs.append("Success\nwaiting for DNS to propagate...")
-            log.debug("host: {0} - waiting for DNS to propagate".format(name))
+            log.info("host: {0} - waiting for DNS to propagate".format(name))
             # TODO - rather than waiting 20 min, maybe we can poll
             # inventory.get_system(name) and if that yields a result, we can say
             # it's propagated?

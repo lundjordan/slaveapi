@@ -138,7 +138,7 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-eas
 
     cmd = ['python', create_script, '-c', config_path, '-r', region, '-s', 'aws-releng',
            '--ssh-key', config['aws_ssh_key'], '-k', config['aws_secrets'], '--loaned-to',
-           email, '--bug', bug, '-i', data_path, fqdn]
+           email, '--bug', bug, '-i', data_path, host]
 
     log.info('creating instance: {0}'.format(fqdn))
     try:
@@ -146,7 +146,7 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-eas
             cmd, cwd=config['aws_base_path'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
     except subprocess.CalledProcessError as e:
-        fail_msg = "{0} - failed to create instance. error: {1}".format(host)
+        fail_msg = "{0} - failed to create instance.".format(host)
         log.warning(e)
         return FAILURE, fail_msg
 
