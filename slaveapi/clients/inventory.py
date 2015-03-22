@@ -7,7 +7,7 @@ from requests import RequestException
 
 import logging
 from ..global_state import config
-from slaveapi.actions.results import SUCCESS, FAILURE
+from ..actions.results import SUCCESS, FAILURE
 
 log = logging.getLogger(__name__)
 
