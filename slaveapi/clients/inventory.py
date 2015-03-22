@@ -31,6 +31,7 @@ def _create_record(ip, payload, desc, _type):
 
     # now add the path that we can update from
     url.path.add('en-US/mozdns/api/v1_dns/{0}'.format(_type))
+    url = "https://{host}:{port}{path}/".format(host=url.host, port=443, path=url.path)
 
     headers = {'content-type': 'application/json'}
     payload.update({
@@ -45,7 +46,7 @@ def _create_record(ip, payload, desc, _type):
     try:
         log.info(debug_msg)
         response = requests.post(
-            str(url), headers=headers, data=json.dumps(payload, indent=2), auth=auth
+            url, headers=headers, data=json.dumps(payload, indent=2), auth=auth
         )
     except RequestException as e:
         debug_msg += ("{0} - exception while creating {1} in "
