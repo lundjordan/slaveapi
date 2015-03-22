@@ -1,5 +1,6 @@
 from collections import defaultdict
 from furl import furl
+import json
 
 import requests
 from requests import RequestException
@@ -31,6 +32,7 @@ def _create_record(ip, payload, desc, _type):
     # now add the path that we can update from
     url.path.add('en-US/mozdns/api/v1_dns/{0}'.format(_type))
 
+    headers = {'content-type': 'application/json'}
     payload.update({
         "ip_str": ip,
         "description": desc,
@@ -38,25 +40,27 @@ def _create_record(ip, payload, desc, _type):
         "views": ["private"],
     })
     auth = (config["inventory_username"], config["inventory_password"])
-    return_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
+    debug_msg = "{0} - Post request to {1} with {2}..".format(ip, url, payload)
 
     try:
-        log.info(return_msg)
-        response = requests.post(str(url), data=payload, auth=auth)
+        log.info(debug_msg)
+        response = requests.post(
+            str(url), headers=headers, data=json.dumps(payload, indent=2), auth=auth
+        )
     except RequestException as e:
-        return_msg += ("{0} - exception while creating {1} in "
+        debug_msg += ("{0} - exception while creating {1} in "
                        "inventory: {2}".format(ip, _type, e))
-        log.exception(return_msg)
-        return FAILURE, return_msg
+        log.exception(debug_msg)
+        return FAILURE, debug_msg
 
-    if response.status_code == 200:
-        return SUCCESS, "Success"
+    if response.status_code in [200, 201, 202, 204]:
+        return SUCCESS, "Success (created %s)" % (response.status_code,)
     else:
-        return_msg = "Failed\n{0} - error response msg: {1}".format(
+        debug_msg = "Failed\n({0}) - error response msg: {1}".format(
             response.status_code, response.reason
         )
-        log.warning(return_msg)
-        return FAILURE, return_msg
+        log.warning(debug_msg)
+        return FAILURE, debug_msg
 
 
 def create_address_record(ip, fqdn, desc):
