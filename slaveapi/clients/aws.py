@@ -131,22 +131,23 @@ def instance_status(name):
         return FAILURE, INSTANCE_NOT_FOUND_MSG % name
 
 
-def create_aws_instance(fqdn, host, email, bug, aws_config, data,
-                        region='use-east-1'):
+def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-east-1'):
     create_script = os.path.join(config['cloud_tools_path'], 'scripts', 'aws_create_instance.py')
     config_path = os.path.join(config['cloud_tools_path'], 'configs', aws_config)
     data_path = os.path.join(config['cloud_tools_path'], 'instance_data', data)
 
+    cmd = ['python', create_script, '-c', config_path, '-r', region, '-s', 'aws-releng',
+           '--ssh-key', config['aws_ssh_key'], '-k', config['aws_secrets'], '--loaned-to',
+           email, '--bug', bug, '-i', data_path, fqdn]
+
+    log.info('creating instance: {0}'.format(fqdn))
     try:
         subprocess.check_call(
-            ['python', create_script, '-c', config_path, '-r', region, '-s',
-             'aws-releng', '--ssh-key', config['aws_ssh_key'], '-k',
-             config['aws_secrets'], '--loaned-to', email, '--bug', bug,
-             '-i', data_path, fqdn], cwd=config['aws_base_path'],
+            cmd, cwd=config['aws_base_path'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
     except subprocess.CalledProcessError as e:
-        fail_msg = "{0} - failed to create instance. error: {1}".format(host, e)
-        log.warning(fail_msg)
+        fail_msg = "{0} - failed to create instance. error: {1}".format(host)
+        log.warning(e)
         return FAILURE, fail_msg
 
     # return code of check_call was good, let's poke the status of this instance
