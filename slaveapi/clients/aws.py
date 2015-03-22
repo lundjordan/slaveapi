@@ -168,4 +168,3 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-eas
                 "Tags known: {1}".format(host, tags or "None"))
     log.warning(fail_msg)
     return FAILURE, fail_msg
-
