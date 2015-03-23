@@ -72,14 +72,12 @@ def aws_create_instance(name, email, bug, instance_type, arch=None):
             # it's propagated?
             time.sleep(20 * 60)
             status_msgs.append("Success\ncreating and assimilating aws instance...")
-            return_code, instance = aws.create_aws_instance(fqdn, name, email,
-                                                            bug, aws_config, data)
+            return_code, instance = aws.create_aws_instance(fqdn, name, email, bug, aws_config,
+                                                            data, ip)
             if return_code == SUCCESS:
-                instance = dict(instance)
-                instance['ip'] = ip  # add ip to downstream parsers like loantool
-                return SUCCESS, str(instance)  # just return instance info
+                return SUCCESS, instance  # just return instance info
 
-            status_msgs.append(str(instance))
+            status_msgs.append(instance)
         else:
             log.warning(return_msg)
             status_msgs.append(return_msg)

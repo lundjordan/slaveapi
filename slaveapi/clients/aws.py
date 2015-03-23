@@ -131,7 +131,7 @@ def instance_status(name):
         return FAILURE, INSTANCE_NOT_FOUND_MSG % name
 
 
-def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-east-1'):
+def create_aws_instance(fqdn, host, email, bug, aws_config, data, ip, region='us-east-1'):
     create_script = os.path.join(config['cloud_tools_path'], 'scripts', 'aws_create_instance.py')
     config_path = os.path.join(config['cloud_tools_path'], 'configs', aws_config)
     data_path = os.path.join(config['cloud_tools_path'], 'instance_data', data)
@@ -162,6 +162,7 @@ def create_aws_instance(fqdn, host, email, bug, aws_config, data, region='us-eas
         tags.get('created')
     ])
     if validated:
+        tags['ip'] = ip
         return SUCCESS, str(tags)  # return instance information
 
     fail_msg = ("{0} - Instance could not be confirmed created or puppetized. "
